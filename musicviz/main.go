@@ -15,8 +15,12 @@ func main() {
 	// http.Handle("/", server)
 	// log.Fatal(http.ListenAndServe(":8080", nil))
 	token := authenticate()
-	getSongInformation(&token, "Toro y moi", "Freelance")
-	getAudioAnalysis(&token, "spotify:track:2HsKkeVWys5Ts20z3e5lT0")
+	//TODO implement search (for later when web server is setup)
+	searchSong(&token, "Toro y moi", "Freelance")
+	results := getAudioAnalysis(&token, "spotify:track:2HsKkeVWys5Ts20z3e5lT0")
+	getAudioFeatures(&token, "spotify:track:2HsKkeVWys5Ts20z3e5lT0")
+	fmt.Println(transformPitchScale(results))
+
 }
 
 /**

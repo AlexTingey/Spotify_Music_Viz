@@ -98,7 +98,9 @@ func authenticate() AuthToken {
 	return token
 
 }
-func getSongInformation(token *AuthToken, artist string, song string) {
+
+//Just searches for a song, TODO
+func searchSong(token *AuthToken, artist string, song string) {
 	client := &http.Client{}
 
 	noSpacesArtistName := strings.Replace(artist, " ", "%20", -1)
@@ -128,19 +130,11 @@ func getSongInformation(token *AuthToken, artist string, song string) {
 		fmt.Println("Could not unmarshal into JSON")
 	}
 }
-func getAudioAnalysis(token *AuthToken, inputURI string) {
-	idxOfSlashOrColon := len(inputURI) - 1
-	if idxOfSlashOrColon < 0 {
-		return
-	}
-	spotifyURI := ""
-	for {
-		//TODO this looks hacky
-		if rune(inputURI[idxOfSlashOrColon]) == rune(":"[0]) || rune(inputURI[idxOfSlashOrColon]) == rune("/"[0]) {
-			spotifyURI = inputURI[idxOfSlashOrColon+1 : len(inputURI)]
-			break
-		}
-		idxOfSlashOrColon--
+func getAudioAnalysis(token *AuthToken, inputURI string) AudioAnalysisResponse {
+
+	spotifyURI := getURI(inputURI)
+	if spotifyURI == "" {
+		return AudioAnalysisResponse{}
 	}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.spotify.com/v1/audio-analysis/"+spotifyURI, strings.NewReader(""))
@@ -166,4 +160,52 @@ func getAudioAnalysis(token *AuthToken, inputURI string) {
 		fmt.Println("Could not unmarshal into JSON")
 	}
 	fmt.Println(AudioAnalysis)
+	return AudioAnalysis
+}
+func getAudioFeatures(token *AuthToken, inputURI string) AudioFeatures {
+	spotifyURI := getURI(inputURI)
+	if spotifyURI == "" {
+		return AudioFeatures{}
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://api.spotify.com/v1/audio-features/"+spotifyURI, strings.NewReader(""))
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	req.Header.Add(http.CanonicalHeaderKey("Authorization"), "Bearer "+token.AccessToken)
+	req.Header.Add(http.CanonicalHeaderKey("Accept"), "application/json")
+	req.Header.Add(http.CanonicalHeaderKey("Content-Type"), "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Couldnt read all")
+	}
+	var AudioFeatures AudioFeatures
+	unmarshalErr := json.Unmarshal(body, &AudioFeatures)
+	if unmarshalErr != nil {
+		fmt.Println("Could not unmarshal into JSON")
+	}
+	fmt.Println(AudioFeatures)
+	return AudioFeatures
+}
+func getURI(inputURI string) string {
+	idxOfSlashOrColon := len(inputURI) - 1
+	if idxOfSlashOrColon < 0 {
+		return ""
+	}
+	spotifyURI := ""
+	for {
+		//TODO this looks hacky
+		if rune(inputURI[idxOfSlashOrColon]) == rune(":"[0]) || rune(inputURI[idxOfSlashOrColon]) == rune("/"[0]) {
+			spotifyURI = inputURI[idxOfSlashOrColon+1 : len(inputURI)]
+			break
+		}
+		idxOfSlashOrColon--
+	}
+	return spotifyURI
 }
