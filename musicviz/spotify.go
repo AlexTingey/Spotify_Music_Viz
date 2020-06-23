@@ -74,7 +74,6 @@ type Segments struct {
 }
 
 const client_id string = "b4da79f085be478fabb6f49bd562d9b4"
-const client_secret string = "202e1d7f699249698e64f601e323090e"
 
 func authenticate() AuthToken {
 	client := &http.Client{}
